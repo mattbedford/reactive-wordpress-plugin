@@ -1,8 +1,7 @@
 # Setting up React JS independently
 ### A how-to on setting up your WP to use React.
 
-
-## Part 1. The easy stuff.
+## Step 1. The easy stuff.
 1. Install node and NPM.
 You'll want the latest version or LTS is OK too.
 
@@ -18,7 +17,7 @@ Go to your ```wp-content``` folder and create a brand new empty dir. Add a new m
 ```
 
 
-## Part 2. The messy stuff.
+## Step 2. The messy stuff.
 1. Add a package JSON. 
 - Don't be scared. In the root of your new directory, create a blank file and call it ```package.json```
 - Paste the following code into it:
@@ -75,7 +74,7 @@ module.exports = {
 };
 ```
 
-## Part 3. Set up the React stuff
+## Step 3. Set up the React stuff
 1. Still in the root directory of your new plugin, create a new folder called ```src```.
 2. Inside it, create three files: ```App.js``` (note the capital A) and ```index.js``` (note the small i) and ```styles.scss```.
 3. Inside ```index.js``` we need to include React, but we do it from @wp-scripts. Just paste in the following:
@@ -105,7 +104,7 @@ export default App;
 ```
 5. You dopn't need to add anything to the styles file yet. But it needs to be there. 
 
-## Part 4. Set up the WP stuff
+## Step 4. Set up the WP stuff
 1. First, we need to give WordPress a way to print our React root element to the screen. The easiest way is (for now) to 
   add this in an action hook - maybe in the footer. To do so, add this script in your ```init.php``` file:
 ```php
@@ -123,6 +122,7 @@ add_action('wp_footer', 'add_custom_React_div');
 function load_custom_react_scripts()
 {
     if(is_admin()) return;
+    // Add your conditionals here to only run scripts where you want them.
     $plugin_url  = plugin_dir_url( __FILE__ );
     wp_enqueue_script('react-wp-app-script',
         $plugin_url . '/build/index.js',
@@ -135,7 +135,7 @@ function load_custom_react_scripts()
 add_action('wp_enqueue_scripts', 'load_custom_react_scripts');
 ```
 
-## Part 5. Test it all out
+## Step 5. Test it all out
 1. Head over to the admin plugins page and activate your plugin.
 2. (And remember this step - without this it won't work): go back to the ___root folder of your new plugin___, and once inside 
   you need to run the WP build scripts. In a command line just do ```npm start```.
@@ -146,3 +146,74 @@ add_action('wp_enqueue_scripts', 'load_custom_react_scripts');
 > NOTE:
 > The html you see on the front-end (and the js that powers it) is built from the "build" folder. Instead all the edits you make
 > in your React app ___need___ to be made inside the SRC folder. 
+
+
+## Next steps. Taking it further
+1. Set up a component structure. 
+You can keep all your JavaScript inside the App.js file if you like, but adopting a component structure is probably better.
+- Create 3 folders inside your SRC directory: ```assets```, ```pages```, and ```components```.
+- Assets is for images, icons, etc, but the other two folders acts as a hierarchy of React. Components are part of pages, 
+  and pages are part of your App file. E.g.
+
+```js
+// ./src/components/counter.js
+
+function Counter() {
+
+  const useState = wp.element.useState;
+
+  // Note how we pass in "0", which gives our initial state.
+  const [count, setCount] = useState(0);
+
+  function handleClick() {
+    setCount(count + 1);
+  }
+
+  return (
+          <button onClick={handleClick}>
+            Clicked {count} times
+          </button>
+  );
+}
+
+export default Counter;
+
+```
+
+```js
+
+// ./src/pages/homepage.js
+import Counter from '../components/counter.js';
+
+const Homepage = () => {
+
+  return (
+          <div id="react-base">
+            <Counter></Counter>
+          </div>
+
+  );
+
+};
+export default Homepage;
+
+```
+
+```js
+// ./src/App.js
+
+import Homepage from './pages/homepage.js';
+
+const App = () => {
+
+  return (
+          <>
+            <Homepage></Homepage>
+          </>
+
+  );
+
+};
+export default App;
+
+```
